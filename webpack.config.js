@@ -3,6 +3,9 @@ const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const Webpack = require('webpack')
 
+console.log('----', process.env)
+console.log(123)
+
 module.exports = {
   // mode 用于设置开发模式
   mode: 'development',

@@ -41,6 +41,8 @@ npm i -D webpack webpack-cli
   > // main.js
   > console.log('hello webpack')
   > ```
+  >
+  > - 实际上，这里也可以直接写`webpack`，并且默认的打包文件是`index.js`
 - 然后在终端中执行命令
   ```shell
   npm run build
@@ -84,7 +86,7 @@ npm i -D webpack webpack-cli
   - **关于path**
 
     - `path`是`node`内置的一个路径工具
-    - 其中`__dirname`表示的是当前配置文件所在的路径
+    - 其中`__dirname`表示的是当前配置文件所在的路径，`resolve`是`path`的一个拼接路径的方法
 
     
 
@@ -100,10 +102,9 @@ npm i -D webpack webpack-cli
   >
   > - 注：`webpack.config.js`配置在根路径下则不需要前缀，如果在其它文件夹下，则要加上前缀，如`test/webpack.config.js`
   >
-  > 当然，这里实际上也可以直接写`webpack`
   
   > 在运行后，我们可以看到在当前目录下生成了一个`dist`文件夹，并生成了一个`output.js`文件
-
+  
 - 然后，我们需要在`html`文件中引入这个`js`文件，才能获取到它的执行结果
 
   - 但我们不能每次都去`dist`文件夹下去引用这个文件
@@ -111,7 +112,7 @@ npm i -D webpack webpack-cli
 
 - 在开发中，我们通常这样配置输出文件名
 
-  - 会在原文件名的基础上。再加上8个`hash`值，这样，每次打包生成的文件名就会不一样
+  - 会在原文件名的基础上，再加上8位的`hash`值，这样，每次打包生成的文件名就会不一样
 
   ```js
   module.exports = {
@@ -154,13 +155,12 @@ npm i -D webpack webpack-cli
   
   ```
 
-  > `template`：表示要解析的`html`文件的路径
+  > `template`：表示要解析的`html`文件的路径，或者按意思来理解，就是以哪个文件作为打包的**模板文件**
 
 - 以上，在打包时，就会自动引入打包后的`js`文件
 
   ```html
   <script defer src="output.js"></script>
-  
   ```
 
 ---
@@ -408,10 +408,58 @@ npm i -D webpack webpack-cli
   }
   ```
 
-  - 在执行脚本的时候去设置环境变量，从而执行不同的打包操作
+  - 在执行脚本的时候，就会去设置环境变量`NODE_ENV`，从而执行不同的打包操作
+  
+  ```js
+  // webpack.config.js
+  
+  console.log(process.env.NODE_ENV)
+  ```
 
----
+##### 第四点：配置源码映射
 
+> - 在我们启动的项目中，引用的文件是打包后的文件
+> - 事实上，如果我们的文件有错误，`webpack`也是会正常运行并打包的
+> - 这时候，我们得到的实际上是打包文件的错误，而不是我们的源文件的错误
+> - 所以，我们需要建立一个打包文件和源码文件的映射关系
 
+- 这种映射关系叫做：`SourceMap`，即源码映射
 
-#### 03. 常用插件与加载器
+  - 当项目运行后发生错误，可以利用`SourceMap`将错误反向定位到源码里
+
+- 配置这种映射关系，我们需要用到`devtool`选项
+
+  ```js
+  module.exports = {
+      devtool: 'source-map',
+  }
+  ```
+
+  - 配置之后，执行打包命令，会在`dist`目录下生成一个`.map`文件，这个文件就是我们的映射文件
+
+- 下面，我们来简单看看这个`devtool`选项的几个关键字
+
+  - **inline**：代码内通过`dataUrl`形式引入`SourceMap`
+  - **hidden**：会生成`SourceMap`文件，但不会使用
+  - **eval**：使用`eval()`的形式去执行代码，通过`dataUrl`的形式去引入`SrouceMap`
+  - **nosource**：不生产`SourceMap`
+  - **cheap**：定位到行信息，不定位到列信息
+  - **module**：显示源代码中的错误位置
+
+- 推荐的配置项
+
+  ```js
+  module.exports = {
+      mode: 'development',
+      devtool: 'eval-cheap-module-source-map',
+  }
+  
+  module.exports = {
+      mode: 'production',
+      // 线上也可以定位错误位置  
+      devtool: 'cheap-module-source-map',
+      // 或者不配置
+  }
+  ```
+
+  
