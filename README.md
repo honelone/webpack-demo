@@ -1,6 +1,6 @@
-#### 01. 最基本配置
+### 01. 最基本配置
 
-##### 第一步：初始化
+#### 第一步：初始化
 
 ```js
 npm init -y
@@ -10,7 +10,7 @@ npm init -y
 
 
 
-##### 第二步：安装 `npm` 包
+#### 第二步：安装 `npm` 包
 
 ```shell
 npm i -D webpack webpack-cli
@@ -27,7 +27,7 @@ npm i -D webpack webpack-cli
 
 
 
-##### 第三步：配置 `script`
+#### 第三步：配置 `script`
 
 - 在 `package.json`文件的`script`中新增一条代码
   ```json
@@ -52,7 +52,7 @@ npm i -D webpack webpack-cli
 
 
 
-##### 第四步：自定义配置文件
+#### 第四步：自定义配置文件
 
 - 要实现更多的自定义，我们需要创建一个自定义的配置文件 `webpack.config.js`
 
@@ -130,7 +130,7 @@ npm i -D webpack webpack-cli
 
 
 
-##### 第五步：配置插件`plugin`
+#### 第五步：配置插件`plugin`
 
 - 我们先正常创建一个`html`文件，放在`public`文件夹下
 
@@ -167,7 +167,7 @@ npm i -D webpack webpack-cli
 
 
 
-##### 第六步：配置加载器`loader`
+#### 第六步：配置加载器`loader`
 
 - `webpack`默认只支持处理`JS`与`JSON`文件，其它类型的文件都无法处理，需要借助加载器`loader`来进行处理
   - 如果我们想引入`css`文件，我们需要借助一些`loader`来进行处理
@@ -229,9 +229,9 @@ npm i -D webpack webpack-cli
 
 
 
-#### 02. `Webpack`入门
+### 02. `Webpack`基本概念
 
-##### 第一点：五个核心概念
+#### 第一点：五个核心概念
 
 - 前面，我们简单介绍了`webapck`最基本的配置，它主要包括了五个核心的概念
   - **mode配置项**
@@ -276,7 +276,7 @@ npm i -D webpack webpack-cli
   
   ```
 
-- 脚本配置是这样的
+- 打包命令配置是这样的
 
   ```json
   {
@@ -286,94 +286,29 @@ npm i -D webpack webpack-cli
   }
   ```
 
-##### 第二点：配置自动服务
+#### 第二点：环境变量
 
-- 前面，当我们每改动一次代码，我们都要去重新打包一次，才能获取到最新的结果
+- 
 
-- 所以，为了解决这个问题，我们需要引入一个插件来让我们的项目能热更新
 
-- 我们先安装一个插件
 
-  ```shell
-  npm i -D webpack-dev-server
-  ```
 
-- 然后我们引入这个插件，并在`devServer`选项中进行插件的相关配置
 
-  ```js
-  const Webpack = require('webpack')
-  
-  module.exports = {
-      devServer: {
-          port: 9527,
-          hot: true,
-          contentBase: '../dist/static',
-      },
-      plugins: [
-          new Webpack.HotModuleReplacementPlugin()
-      ]
-  }
-  ```
 
-- 现在，我们来简单聊聊这个`devServer`选项
-
-  - `port`：端口
-
-  - `open`：是否自动打开
-
-  - `hot`：是否热更新
-
-  - `compress`：是否启动`gzip`压缩
-
-  - `contentBase`：配置静态文件的目录**（version < 4）**
-
-  - `static`：配置静态文件的目录**（version >= 4）**
-
-    > 这个静态文件目录的作用是：
-    >
-    > - 在`webpack`打包时，会将项目中的静态文件都直接复制到`dist`目录下
-    > - 这个过程对本地开发来说是没有必要的
-    > - 所以我们设置一个目录，让打包后的文件直接到我们设置的目录下去读取静态文件
-    > - 可以节省时间和性能
-
-- 到这里，基本配置可以了，但我们还需要再配置一下启动脚本
-
-  ```json
-  {
-      "scripts": {
-          "dev": "webpack",
-          "server": "webpack-dev-server"
-      }
-  }
-  
-  ```
-
-  > 其实，我们也可以在`scripts`中去配置参数：
-  >
-  > ```json
-  > {
-  >     "scripts": {
-  >         "dev": "webpack --mode development",
-  >         "server": "webpack-dev-server --open --host 127.0.0.1 --port 9527"
-  >     }
-  > }
-  > 
-  > ```
-  >
-  > - 这里
-  >   - `--mode`：设置构建模式
-  >   - `--open`：表示自动打开
-  >   - `--host`：配置IP地址
-  >   - `--port`：配置端口号
-
-- 最后，这里要注意一下
-  - `webpack-dev-derver`打包后的文件是存储在内存中的（所以它才这么快）
 
 ---
 
 
 
-##### 第三点：区分不同环境
+
+
+
+
+---
+
+
+
+第三点：区分不同环境
 
 > - 事实上，我们在正式项目中是会有多个环境的，如开发环境、测试环境、正式环境等
 > - 在不同环境中，对于项目的打包要求也是不一样的
@@ -416,18 +351,322 @@ npm i -D webpack webpack-cli
   console.log(process.env.NODE_ENV)
   ```
 
-##### 第四点：配置源码映射
 
-> - 在我们启动的项目中，引用的文件是打包后的文件
-> - 事实上，如果我们的文件有错误，`webpack`也是会正常运行并打包的
-> - 这时候，我们得到的实际上是打包文件的错误，而不是我们的源文件的错误
-> - 所以，我们需要建立一个打包文件和源码文件的映射关系
 
-- 这种映射关系叫做：`SourceMap`，即源码映射
+### 03. 常用插件和加载器
 
-  - 当项目运行后发生错误，可以利用`SourceMap`将错误反向定位到源码里
+#### 第一个：打包HTML文件
 
-- 配置这种映射关系，我们需要用到`devtool`选项
+- `html-webpack-plugin`
+
+  - 作用：用于自动引入打包后的`.js`文件
+
+  - 使用：
+
+    ```js
+    const HtmlWebpackPlugin = require('html-webpack-plugin')
+    module.exports = {
+        plugins: [
+            new HtmlWebpackPlugin({
+                template: path.resolve(__dirname,'../public/index.html')
+            }),
+        ]
+    }
+    
+    ```
+
+- `clean-webpack-plugin`
+
+  - 作用：在进行下次打包之前清空上次打包的残留文件
+
+  - 使用：
+
+    ```js
+    const {CleanWebpackPlugin} = require('clean-webpack-plugin')
+    module.exports = {
+        plugins: [
+            new CleanWebpackPlugin(),
+        ]
+    }
+    
+    ```
+
+#### 第二个：打包CSS文件
+
+- `style-loader`
+
+  - 作用：将`css-loader`处理后的文件处理到`js`文件中，启动项目后将会以`style`标签的形式添加到页面上
+
+- `css-loader`
+
+  - 作用：处理`css`文件，并将结果传给`style-loader`进一步处理
+
+- `postcss-loader`
+
+  - 作用：对`css`文件进行处理，自动添加浏览器前缀，结果会传给`css-loader`进行处理
+
+    - 还需要`autoprefixer`来进行辅助，否则不生效
+
+  - 使用：
+
+    - 创建一个`postcss.config.js`文件，配置
+
+      ```js
+      module.exports = {
+          plugins: [require('autoprefixer')]
+      }
+      ```
+
+    - 或者直接在`webpack.config.js`中配置
+
+      ```js
+      module.exports = {
+          module: {
+              rules: [{
+                  test: /\.css$/,
+                  use: [
+                      'style-loader',
+                      'css-loader', 
+                      {
+                          loader: 'postcss-loader',
+                          options: {
+                              plugins: [require('autoprefixer')]
+                          }
+                      }
+                  ]
+      
+              }]
+          }
+      }
+      ```
+
+- `less-loader`
+
+  - 作用：将`less`文件处理成`css`文件
+
+- `sass-loader`
+
+  - 作用：将`scss`文件处理成`css`文件
+
+    - 还需要安装`node-sass`来辅助
+
+  - 使用：
+
+    ```js
+    module.exports = {
+        module: {
+            rules:[{
+                // test: /\.less$/, // 匹配 less 文锦啊
+                test: /\.(s[ac]|c)ss$/i, //匹配所有的 sass/scss/css 文件
+                use: [
+                    'style-laoder',
+                    'css-laoder',
+                    'postcss-laoder',
+                    // 'less-loader',
+                    'sass-loader'
+                ]
+            }]
+        }
+    }
+    ```
+
+- `mini-css-extract-plugin`
+
+  - 作用：
+
+    - 分离样式：可以将样式从`js`文件中提取到单独的`css`文件
+
+      > 用了这个插件就不需要`style-loader`了
+
+  - 使用：
+
+    ```js
+    const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+    moudle.exports = {
+        module: {
+            rules: [{
+                test: /\.css$/,
+                use: [
+                    // 'style-loader', // 用插件的 loader 代替
+                    MiniCssExtractPlugin.loader,
+                    'css-loader',
+                    
+                ]
+            }]
+        },
+        plugins: [
+            new MiniCssExtractPlugin({
+               filename: '[name].[hash:8].css', // 提取后的 css 文件名
+            }),
+        ]
+    }
+    
+    ```
+
+#### 第三个：打包静态资源
+
+#### 第四个：打包JS文件
+
+#### 第五个：打包Vue文件
+
+
+
+
+
+
+
+---
+
+
+
+### 04. `webpack`优化
+
+> 接下来，我们来看一下`webpack`的优化
+
+
+
+#### 第一条：配置自动服务
+
+> 目前，我们的每一次更改操作，都需要去重新打包，才能获取到最新结果。这样作时很麻烦的
+>
+> 所以，我们需要`webpack`能够自动的来帮我们处理这些操作，即自动化
+
+##### （1）`wacth`参数
+
+- `webpack`自带了一个参数——`watch`，可以在文件更新后自动重新打包编译
+
+  ```js
+  // 可以在 script 脚本中配置
+  "scripts": {
+      "dev": "webpack --watch"
+  }
+  
+  ----------------------------------
+  
+  // 也可以在配置文件中去配置
+  moule.exports = {
+      watch: true,
+  }
+  ```
+
+  > 这种方式只能实现简单的自编译，我们更多的还是使用第二种方式
+
+##### （2）`webpack-dev-server`
+
+- 这是一个插件，可以帮助`webpack`处理更多的自动任务，如：自编译、自刷新等等
+
+- 我们先安装这个插件
+
+  ```shell
+  npm i -D webpack-dev-server
+  ```
+
+- 然后配置打包命令
+
+  ```json
+  {
+      "scripts": {
+          "server1": "webpack-dev-server",
+          "server2": "webpack -server"
+      }
+  }
+  ```
+
+  > 上面两种命令都可以
+
+- `webpack-dev-server`有默认配置，但如果我们想自定义，就需要在`devServer`选项中进行配置
+
+  ```js
+  const Webpack = require('webpack')
+  
+  module.exports = {
+      devServer: {
+          port: 9527, // 端口号，默认为 8080
+          open: true, // 是否自动打开浏览器
+          hot: true, // 是否启用 热更新
+          compress: true, // 是否开启 gzip压缩
+          contentBase: path.resolve(__dirname, 'public'),
+      },
+      plugins: [
+          new Webpack.HotModuleReplacementPlugin() // 这个是为上面的 热更新 服务的
+      ]
+  }
+  ```
+
+- 接下来，详细简单说说这个`devServer`选项的两个配置项
+
+  - 对静态资源的配置项
+
+    - **contentBase**：配置静态文件的目录**（version < 4）**
+    - **static**：配置静态文件的目录**（version >= 4）**，默认为`public`文件夹
+
+    > 这个配置项的作用是：
+    >
+    > - 在`webpack`打包时，会将项目中的静态文件都**直接复制**到`dist`目录下，而这个过程对本地开发来说是没有必要的
+    > - 所以，我们设置一个目录，让打包后的文件直接**到我们设置的目录下去读取静态文件**，以减少不必要的处理
+
+    ```js
+    module.exports = {
+        devServer: {
+            contentBase: path.resolve(__dirname, 'public'),
+            static: path.resolve(__dirname, 'public')
+        },
+    }
+    ```
+
+  - 配置代理服务器
+
+    > 对于前后端的跨域请求的处理，一种方式是在服务端配置接口支持`CORS`，另一种方式就是配置代理服务器
+    >
+    > 在`webpack-dev-server`中可以通过`proxy`选项来支持实现代理服务器
+
+    - `proxy`：配置代理
+
+    ```js
+    module.exports = {
+        devServer: {
+            proxy: {
+                // 这里表示 以`/api`开头的接口，都会被代理到指定的地址
+                '/api': {
+                    // 例如，我们请求 http://localhost:8080/api/users
+                    // -- 就会被代理到 https://api.github.com/api/users
+                    target: 'https://api.github.com',
+                    // 如果我们真正的请求地址是 https://api.github.com/users
+                    // -- 那么我们需要通过 pathRewrite 这个配置项对路径进行重写
+                    // -- 这里标识将 '/api' 替换为 '' 空字符串
+                    pathRewrite: { '^/api': '' },
+                    // 默认情况下，在代理时会保留主机头的来源
+                    // -- 这里可以将 changeOrigin 设置为 true 以覆盖此行为
+                    changeOrigin: true,
+                },
+            }
+        }
+    }
+    ```
+
+- 最后，这里要注意一下
+
+  - `webpack-dev-derver`打包后的文件是存储在内存中的（所以它才这么快），它并不会在当前目录下生成一个`dist`文件夹
+
+---
+
+
+
+#### 第二条：配置源码映射
+
+> 我们运行打包后的项目，引用的文件也是打包后的文件，如果我们的代码有错误，`webpack`也是会正常运行并打包的
+>
+> 并且，控制台报的错，找到的也是打包后的文件的错误，并不是我们想要的源文件的错误
+>
+> 这时候，我们就需要建立一个打包文件和源码文件的映射关系
+
+##### （1）`SourceMap`
+
+- 上面说的映射关系叫做：`SourceMap`，即源码映射
+
+  - 配置`SourceMap`打包后的项目，在项目发生错误时，可以将错误映射到源码里，从而让我们快速定位到错误代码的位置
+
+- 我们可以通过`devtool`配置项来开启`SourceMap`
 
   ```js
   module.exports = {
@@ -435,31 +674,31 @@ npm i -D webpack webpack-cli
   }
   ```
 
-  - 配置之后，执行打包命令，会在`dist`目录下生成一个`.map`文件，这个文件就是我们的映射文件
+  > 配置之后，执行打包命令，会在`dist`目录下生成一个`.map`文件，这个文件就是我们的映射文件
 
-- 下面，我们来简单看看这个`devtool`选项的几个关键字
+- 这里的可选项很多，这里就不一一介绍了，主要来看看这几个关键字
 
-  - **inline**：代码内通过`dataUrl`形式引入`SourceMap`
-  - **hidden**：会生成`SourceMap`文件，但不会使用
+  - **inline**：在代码内通过`dataUrl`的形式引入`SourceMap`
   - **eval**：使用`eval()`的形式去执行代码，通过`dataUrl`的形式去引入`SrouceMap`
-  - **nosource**：不生产`SourceMap`
   - **cheap**：定位到行信息，不定位到列信息
   - **module**：显示源代码中的错误位置
+  - **hidden**：会生成`SourceMap`文件，但不会使用
+  - **nosources**：不会生成`SourceMap`
 
 - 推荐的配置项
 
-  ```js
-  module.exports = {
-      mode: 'development',
-      devtool: 'eval-cheap-module-source-map',
-  }
-  
-  module.exports = {
-      mode: 'production',
-      // 线上也可以定位错误位置  
-      devtool: 'cheap-module-source-map',
-      // 或者不配置
-  }
-  ```
+  - 开发环境：`eval-cheap-module-source-map`
+  - 生产环境：`none`
+    - 或者`nosources-source-map`，可以定位报错信息，但不会暴露源代码
 
-  
+
+
+
+
+
+
+第一条：优化构建速度
+
+第二条：优化运行体验
+
+第三条：优化打包结果
