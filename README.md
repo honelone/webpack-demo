@@ -292,17 +292,41 @@ npm i -D webpack webpack-cli
 
 
 
+#### 第三点：加载资源
+
+- `webpack`中
+  - 支持`ES Module`规范引入资源
+  - 支持`Common JS`规范
+  - 支持`AMD`规范
+  - 使用`@import`引入
+  - 使用`url()`函数
+  - 使用`src`标签属性引入
 
 
 
+#### 第四点：构建流程
 
----
+- 初始化
 
+  - `entry-options`启动
+    - 从`shell`命令和配置文件中读取并合并参数
 
+  - `run`实例化
+    - 用上一步得到的参数初始化`Compiler`对象，加载所有配置的插件，执行对象的`run`方法，开始执行编译
 
-
-
-
+- 编译构建
+  - `entry`入口
+    - 根据配置中的`entry`找到所有的打包入口文件
+  - `make`编译模块
+    - 从入口文件出发，调用所有配置的`Loader`对模块进行翻译
+    - 再找出模块依赖的另一个模块，进行递归处理
+    - 知道所有入口依赖的文件都经过了编译处理
+  - `build module`完成模块编译
+    - 经过上一步，使用`Loader`完成了所有模块的翻译，得到了每个模块被翻译后的最终内容。以及它们之间的依赖关系
+  - `seal`输出资源
+    - 根据入口和模块之间的依赖关系，组装成一个个的包含多个模块的`Chunk`，再吧每个`Chunk`转换成一个单独的文件加入到输出列表中
+  - `emit`输出完成
+    - 在确定好输出内容后，根据配置确定输出的路径和文件名，把文件内容写入到文件系统
 
 ---
 
@@ -420,26 +444,23 @@ npm i -D webpack webpack-cli
     - 或者直接在`webpack.config.js`中配置
 
       ```js
-      module.exports = {
-          module: {
-              rules: [{
-                  test: /\.css$/,
-                  use: [
-                      'style-loader',
-                      'css-loader', 
-                      {
-                          loader: 'postcss-loader',
-                          options: {
-                              plugins: [require('autoprefixer')]
-                          }
+      rules: [
+          {
+              test: /\.css$/,
+              use: [
+                  'style-loader',
+                  'css-loader', 
+                  {
+                      loader: 'postcss-loader',
+                      options: {
+                          plugins: [require('autoprefixer')]
                       }
-                  ]
-      
-              }]
+                  }
+              ]
           }
-      }
+      ]
       ```
-
+  
 - `less-loader`
 
   - 作用：将`less`文件处理成`css`文件
@@ -453,23 +474,21 @@ npm i -D webpack webpack-cli
   - 使用：
 
     ```js
-    module.exports = {
-        module: {
-            rules:[{
-                // test: /\.less$/, // 匹配 less 文锦啊
-                test: /\.(s[ac]|c)ss$/i, //匹配所有的 sass/scss/css 文件
-                use: [
-                    'style-laoder',
-                    'css-laoder',
-                    'postcss-laoder',
-                    // 'less-loader',
-                    'sass-loader'
-                ]
-            }]
+    rules:[
+        {
+            // test: /\.less$/, // 匹配 less 文锦啊
+            test: /\.(s[ac]|c)ss$/i, //匹配所有的 sass/scss/css 文件
+            use: [
+                'style-laoder',
+                'css-laoder',
+                'postcss-laoder',
+                // 'less-loader',
+                'sass-loader'
+            ]
         }
-    }
+    ]
     ```
-
+  
 - `mini-css-extract-plugin`
 
   - 作用：
@@ -505,15 +524,255 @@ npm i -D webpack webpack-cli
 
 #### 第三个：打包静态资源
 
+- `file-loader`
+
+  - 作用：将一些文件处理后复制到输出目录下
+
+  - 使用：
+
+    ```js
+    rules: [
+        {
+            test: /\.(jpe?g|png|gif)$/i, // 匹配图片文件
+            use: [
+                'file-loader' // 使用 file-loader ，默认是直接复制
+            ]
+        }
+    ]
+    
+    ```
+
+    - 可以通过`options`选项自定义
+
+    ```js
+    rules: [
+        {
+            test: /\.(jpe?g|png|gif)$/i, // 匹配图片文件
+            use: [
+                {
+                    loader: 'file-loader',
+                    options: {
+                        // 复制到输出目录下的 img 文件夹下
+                        // -- 并修改名称为  原来的文件名称 + hash值
+                        name: 'img/[name].[hash:8].[ext]'
+                    }
+                }
+            ]
+        }
+    ]
+    
+    ```
+
+    
+
+- `url-loader`
+
+  - 作用：可以让文件在小于设置的大小时，返回一个`DataURL`，或者说`base64`编码，否则，使用`file-loader`来进行处理
+    - 对于小文件，我们可以使用`DataURL`，从而减少请求次数
+    - 对于大文件我们可以单独进行存在，提高加载速度
+  - 使用：
+
+  ```js
+  rules: [
+      {
+          test: /\.(jpe?g|png|gif)$/i, // 匹配图片文件
+          use: [
+              {
+                  loader: 'url-loader',
+                  options: {
+                      // 限定大小，小于 100kb 时，会转换为 base64编码，超过时则使用 file-loader 处理
+                      limit: 100 * 1024,
+                      // 超过大小时会使用 file-loader 的默认配置，即直接复制
+                      // -- 但也可以通过 fallback 选项进行自定义设置
+                      fallback: {
+                          loader: 'file-loader',
+                          options: {
+                              name: 'img/[name].[hash:8].[ext]' // 移动到输出目录下 img 文件夹中，并命名
+                          }
+                      }
+                  }
+              }
+          ]
+      }
+  ]
+  
+  ```
+
+  - 匹配字体
+
+    ```js
+    {    
+        test: /\.(woff2?|eot|ttf|otf)(\?.*)?$/i,  // 匹配字体文件
+    }
+    ```
+
+  - 匹配媒体
+
+    ```js
+    {
+        test: /\.(mp4|webm|ogg|mp3|wav|flac|aac)(\?.*)?$/, // 匹配媒体文件
+    }
+    ```
+
 #### 第四个：打包JS文件
+
+- `babel-loader`
+
+  - 作用：将`ES6 | ES7 | ES8`语法转换为`ES5`语法
+
+    - 需要安装
+
+      ```shell
+      npm i -D babel-loader @babel/core @babel/preset-env
+      ```
+
+      > 注意版本：
+      >
+      > - `babel-loader` 8.x 对应`babel-core` 7.x
+      >
+      > - `babel-loader` 7.x 对应`babel-core` 6.x
+
+  - 使用：
+
+    ```js
+    // webpack.config.js
+    module.exports = {
+        module: {
+            rules: [
+                {
+                    test: /\.js$/,
+                    use: {
+                        loader: 'babel-loader',
+                        options: {
+                            presets: ['@babel/preset-env']
+                        }
+                    },
+                    exclude: /node_modules/, // 排除 node_modules 文件夹
+                }
+            ]
+        }
+    }
+    
+    ```
+
+- `babel-polyfill`
+
+  - 作用：将一些`babel-loader`不支持转换的语法进行转换，如`Promise`、`Generate`、`Set`、`Maps`、`Proxy`等
+
+    - 需要安装
+
+      ```shell
+      npm i @babel/polyfill
+      ```
+
+  - 使用：
+
+    ```js
+    // webpack.config.js
+    const path = require('path')
+    module.exports = {
+        entry: ['@babel/polyfill', path.resolve(__dirname, 'src', 'index.js')],
+    }
+    ```
+
+---
+
+- 通常我们会将`Babel`配置单独提取出来`.babelrc.js`
+
+  ```js
+  // .babelrc.js
+  
+  module.exports = {
+      presets: [
+          "@babel/preset-env",
+          {
+              // false | entry | usage
+              // -- false: 始终引入所有 polyfill
+              // -- entry: 根据配置的浏览器兼容，引入浏览器不兼容的 polyfill
+              // -- usage: 根据配置的浏览器兼容，和代码中用到的 API 来引入 polyfill， 即按需引入
+              useBuiltIns: 'entry',
+              corejs: '3.9.1',
+              targets: {
+                  chrome: '58',
+                  ie: '11'
+              }
+          }
+      ],
+      // 如果是还未引入 ECMA规范的新特性，则需要新增一些插件来处理
+      plugins: [
+          ["@babel/plugin-proposal-decorators", { legacy: true }],
+          ["@babel/plugin-proposal-class-properties", { loose: true }],
+      ]
+  }
+  ```
 
 #### 第五个：打包Vue文件
 
+- `vue-loader`
 
+  - 作用：用于解析`.vue`文件
 
+    - 还需要安装
+      - `vue-template-compiler`：用于编译Vue模板
+      - `vue-style-loader`：
 
+  - 使用：
 
+    ```js
+    const vueLoaderPlugin = require('vue-loader/lib/plugin')
+    
+    module.exports = {
+        module: {
+            rules: [{
+                test: /\.vue$/,
+                use: 'vue-loader'
+            }]
+        },
+        resolve: {
+            alias: {
+                'vue$': 'vue/dist/vue.runtime.esm.js',
+                '@': path.resolve(__dirname, 'src')
+            },
+            extensions: ['*', '.js', '.json', '.vue']
+        },
+        plugins: [
+            new vueLoaderPlugin()
+        ]
+    }
+    ```
 
+#### 第六个：资源模块化
+
+- `webpack5`新增了资源模块（`asset module`），允许我们使用资源文件而不要配置额外的`loader`
+
+  - `asset/resource`：将资源分割为单独的文件，并导出`url`，作用同`file-loader`
+  - `asset/inline`：将资源导出为`dataUrl`的形式，作用同`url-laoder`
+  - `asset/source`：将资源你到处为源码`source code`，作用同`raw-loader`
+  - `asset`：自动根据文件大小选择配置，默认小于`8kb`时，使用`asset/inline`，其它情况使用`asset/resource`
+
+  ```js
+  module.exports = {
+      module: {
+          rules: [
+              {
+                  test: /\.(jpe?g|png|gif)$/i, // 匹配图片文件
+                  type: 'asset',
+                  generatae: {
+                      // 设置输出目录即输出文件
+                      filename: '[name][hash:8][ext]'
+                  },
+                  parser: {
+                      dataUrlCondition: {
+                          maxSize: 100 * 1024 // 设置文件大小，同 limit
+                      }
+                  }
+              }
+          ]
+      }
+  }
+  ```
+
+  
 
 ---
 
@@ -691,14 +950,461 @@ npm i -D webpack webpack-cli
   - 生产环境：`none`
     - 或者`nosources-source-map`，可以定位报错信息，但不会暴露源代码
 
+---
+
+
+
+#### 第三条：优化构建速度
+
+##### （1）`speed-meature-webpack-plugin`
+
+- 这个插件可以帮助我们获取打包**构建的时间**
+
+- 首先安装这个插件
+
+  ```shell
+  npm i -D speed-measure-webpack-plugin
+  ```
+
+- 然后进行配置
+
+  ```js
+  const SpeedMeaturePlugin = require('speed-meature-webpack-plugin')
+  const smp = new SpeedMeaturePlugin()
+  module.exports = smp.warp({
+      ...
+  })
+  ```
+
+> 这个插件对一些新版本的`Plugin`和`Loader`会不兼容，所以并不推荐使用
+
+
+
+##### （2）多进程打包
+
+- 配置了`thread-loader`之后的`loader`都会在一个单独的`worker`中运行
+
+  ```js
+  rules:[
+      {
+          test: /\.js$/,
+          use: [
+              {
+                  loader: 'thread-loader',
+                  options: {
+                      worker: 3,
+                  }
+              }
+          ]
+      }
+  ]
+  ```
+
+##### （3）缓存
+
+- `babel`在处理过程中时间开销比较大，将 `babel-loader` 的执行结果缓存起来，重新打包的时候，直接读取缓存
+
+  ```js
+  use: [
+      {
+          loader: 'babel-loader',
+          ooptions: {
+              cacheDirectory: true,
+          }
+      }
+  ]
+  ```
+
+- 其它的`loader`需要借助`cache-loader`来处理
+
+- `webpack5`中已经内置了更好的`cache`方法，通过配置即可缓存`webpack`模块和`chunk`，改善构建速度
+
+  ```js
+  module.exports = {
+      cache: {
+          type: 'filesystem',
+      }
+  }
+  ```
+
+#### 
+
+#### 第四条：优化`resolve`配置
+
+##### （1）alias别名
+
+- `alias`用来创建`import`或`require`的别名，从而简化模块的引用
+
+  ```js
+  const path = require('path')
+  
+  // resolve 方法就是对 join 方法的封装
+  function resolve(dir) {
+      return path.join(__dirname, dir)
+  }
+  
+  module.exports = {
+      resolve: {
+          alias: {
+              '~': resolve('src'),
+              '@': resolve('src'),
+              'components': resolve('src/components'),
+          }
+      }
+  }
+  ```
+
+##### （2）extensions扩展名
+
+- `extensions`用来省略扩展名
+
+  - 如果在引入模块时没有带上后缀，则`webpack`会按照`extensions`数组中配置的扩展名，从左到右的顺序去解析模块
+
+  ```js
+  module.exports = {
+      resolve: {
+          // 手动配置会覆盖默认配置
+          // -- 但可以通过 `...` 来保留默认配置
+          extensions: ['.js', '.json', '.wasm', '...']
+      }
+  }
+  ```
+
+##### （3）modules模块
+
+- `modules`用来设置被解析模块的目录，它会告诉`webpack`到哪个文件夹下去搜索模块
+
+  ```js
+  module.exports = {
+      resolve: {
+          modules: [resolve('src'), 'node_modules']
+      }
+  }
+  ```
+
+---
+
+#### 第五条：优化依赖包引入
+
+##### （1）CDN引入
+
+##### （2）externals排除
+
+- `externals`配置项可以将配置的依赖包从打包文件中移除，即不对这些依赖进行打包处理，而是通过上面的`CDN`形式引入，这样可以减小打包文件的大小，节省打包构建的时间
+
+  ```js
+  module.exports = {
+      externals: {
+          
+      }
+  }
+  ```
+
+##### （3）include和exclude包含与排除
+
+- 可以在配置加载器`loader`时，精确的去指定需要引入的目录和排除的目录
+
+  - `iclude`：符合条件的模块
+  - `exclude`：排除符合条件的模块
+
+  ```js
+  rules: [
+      {
+          test: /\.js$/i,
+          include: resolve('src'),
+          exclude: /node_modules/,
+          use: ['babel-loader'],
+      }
+  ]
+  ```
+
+##### （4）noParse不解析
+
+- `noParse`可以对配置了的模块文件，不解析里面的`import`、`require`等高级语法
+
+  ```js
+  modul: {
+      noParse: /lodash/,
+      rules: []
+  }
+  ```
+
+#### 第六条：打包结果
+
+##### （1）`webpack-bundle-analyzer`
+
+- 引入这个插件可以生成一个打包结果分析，用于分析依赖包的大小
+
+  ```js
+  const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
+  module.exports = {
+      plugins: [
+          new BundleAnalyzerPlugin()
+      ]
+  }
+  ```
+
+##### （2）压缩CSS
+
+- 安装插件
+
+  ```shell
+  npm i -D optimize-css-assets-webpack-plugin
+  ```
+
+- 使用
+
+  ```js
+  const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin')
+  module.exports = {
+      optimization: {
+          minimize: true,
+          minimizer: [
+              new OptimizeCssAssetsPlugin()
+          ]
+      }
+  }
+  ```
+
+##### （3）压缩JS
+
+- 手动配置了`optimization`选项后，默认JS 压缩失效，需要重新配置
+
+- `webpack5`内置的`terser-webpack-plugin`插件
+
+  ```js
+  const TerserPlugin = require('terser-webpack-plugin')
+  module.exports = {
+      optimization: {
+          minimize: true,
+          minimizer: [
+              new TerserPlugin()
+          ]
+      }
+  }
+  ```
+
+##### （4）Tree-Shaking
+
+- `tree-shaking`可以清除没有使用的代码， 降低打包体积，即按需导入
+
+- 在`.babelrc.js`文件中配置
+
+  ```js
+  // .babelrc.js
+  
+  module.exports = {
+      presets: [
+          [
+              '@babel/preset-env',
+              {
+                  module: false, // 配置 module 即可在生产环境下开启
+              }
+          ]
+      ]
+  }
+  ```
+  
+  > 这是因为：`tree-shaking`只能用于`ES6`模块，不能使用其它类型的模块如`CommonJS`，而`Babel`的配置会将任何模块类型都转译成`CommonJS`类型，这样就会导致`tree-shaking`失效，所以要配置`module`为`false`进行修正
+
+##### （5）Scope-Hoisting
+
+- `scope hoisting`即作用域提升，将多个模块放在同一作用域下，并重命名防止命名冲突。可以减少函数声明和内存开销
+- 默认开启
+
+---
+
+
+
+#### 第七条：优化运行体验
+
+> 提高首屏加载速度，降低首屏加载文件体积
+
+##### （1）配置多个打包入口
+
+- 在`entry`配置项中进行处理
+
+  - 配置为对象形式，每一个属性表示一个入口
+
+  ```js
+  module.exports = {
+      entry: {
+          index: './src/index.js',
+          main: './src/main.js'
+      },
+      output: {
+          // [name] 表示 entry 中的属性，即最终会输出 两个文件
+          filename: '[name].[hash:8].js'
+      }
+  }
+  
+  ```
+
+- 默认的，打包后的文件`HTML`文件中会引入所有的`JS`文件，如果要指定只引入某一个文件，需要配置`chunks`
+
+  ```js
+  new HtmlWebpackPlugin({
+      template: './src/index.html',
+      filename: 'index.html',
+      chunks: ['index'], // 表示只引入上面的 index.js 文件
+  })
+  ```
+
+  
+
+##### （2）分包处理
+
+- 在 `optimization`配置项中处理
+
+  - 默认配置
+
+  ```js
+  module.exports = {
+      optimization: {
+          splitChunks: {
+              chunks: 'async', // 有效值为 `all`，`async` 和 `initial`
+              minSize: 20000, // 生成 chunk 的最小体积（≈ 20kb)
+              minRemainingSize: 0, // 确保拆分后剩余的最小 chunk 体积超过限制来避免大小为零的模块
+              minChunks: 1, // 拆分前必须共享模块的最小 chunks 数
+              maxAsyncRequests: 30, // 最大的按需(异步)加载次数
+              maxInitialRequests: 30, // 打包后的入口文件加载时，还能同时加载js文件的数量（包括入口文件）
+              enforceSizeThreshold: 50000,
+              cacheGroups: { // 配置提取模块的方案
+                  defaultVendors: {
+                      test: /[\/]node_modules[\/]/,
+                      priority: -10,
+                      reuseExistingChunk: true,
+                  },
+                  default: {
+                      minChunks: 2,
+                      priority: -20,
+                      reuseExistingChunk: true,
+                  },
+              }
+          }
+      }
+  ```
+
+  - 开发配置
+
+  ```js
+  const config = {
+      //...
+      optimization: {
+          splitChunks: {
+              cacheGroups: { // 配置提取模块的方案
+                  default: false,
+                  styles: {
+                      name: 'styles',
+                      test: /\.(s?css|less|sass)$/,
+                      chunks: 'all',
+                      enforce: true,
+                      priority: 10,
+                  },
+                  common: {
+                      name: 'chunk-common',
+                      chunks: 'all',
+                      minChunks: 2,
+                      maxInitialRequests: 5,
+                      minSize: 0,
+                      priority: 1,
+                      enforce: true,
+                      reuseExistingChunk: true,
+                  },
+                  vendors: {
+                      name: 'chunk-vendors',
+                      test: /[\\/]node_modules[\\/]/,
+                      chunks: 'all',
+                      priority: 2,
+                      enforce: true,
+                      reuseExistingChunk: true,
+                  },
+                  // ... 根据不同项目再细化拆分内容
+              },
+          },
+      },
+  }
+  
+  ```
+
+##### （3）懒加载
+
+- 通过异步加载实现
+
+  ```js
+  import('./img/logo.png').then()
+  ```
+
+- 通过魔法注释实现
+
+  ```js
+  import(/* webpackChunkName: 'component1' */'./img/logo1.png').then()
+  import(/* webpackChunkName: 'component2' */'./img/logo2.png').then()
+  ```
+
+  > 会自动分包为两个文件，魔法注释名称相同的模块会被打包进同一个页面
+
+- `prefetch`预获取和`preload`预加载
+
+  - 预获取会在浏览器空闲的时候才进行资源的拉取
+  - 预加载会提前加载后面会用到的关键资源
+
+  ```js
+  import(/* webpackPrefetch: true */'./img/logo1.png').then()
+  
+  import(/* webpackPreload: true */'./img/logo2.png').then()
+  ```
+
+  
 
 
 
 
 
+### 05.`webpack`深入
 
-第一条：优化构建速度
+> 
+>
+> 这里什么都没有
+>
+> 
 
-第二条：优化运行体验
+#### 第一幕：手写Loader
 
-第三条：优化打包结果
+- `Loader`从本质上来说就是一个`node`模块，它可以将传入的代码进行一系列加工处理后，再返回出去
+
+- `Loader`的编写遵循以下原则：
+
+  - 单一原则，每一个`Loader`只做一件事情
+  - 链式调用：按照规定，`webpack`会按照从右到左的顺序去链式调用每一个`Loader`
+  - 统一原则：遵循`webpack`指定的设计规则和结构，`Loader`的输入与输出都是字符串，且每一个`Loader`都相互独立，互不影响
+
+  ```js
+  module.exports = function(source) {
+      // ...
+      return output.code
+  }
+  ```
+
+  
+
+#### 第二幕：手写Plugin
+
+- `Webpack`在运行的生命周期中会广播出许多时间，`Plugin`可以监听这些事件，并对其中的一些事件做处理
+
+  ```js
+  class MyPlugin {
+      constructor(options) {
+          console.log('my-plugin-constructor')
+      }
+      apply(compiler) {
+          compiler.plugin('done', compilation => {
+              console.log('my-plugin-apply')
+          })
+      }
+  }
+  
+  module.exports = MyPlugin
+  ```
+
+  
