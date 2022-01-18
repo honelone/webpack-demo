@@ -5,3 +5,8 @@
 import '../assets/index.css'
 
 console.log('====== hello webpack ======')
+
+// 再 DefinePlugin 中定义的常量
+console.log('============')
+console.log('API_BASE_URL：', API_BASE_URL)
+console.log('============')
